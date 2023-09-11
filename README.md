@@ -48,9 +48,9 @@ GET      |/api/search| tek yada çift yönlü uçuş bilgilerini alır|requestPa
 ### Auth Controller
 * Register ve Login işlemelerinin gerçekleştiği kısımdır
 
-Method   |   Path   |   Description|Request Parameters| Response
----------|----------|--------------|----------|
-POST     |/api/auth/login | Sisteme giriş yapar  |LoginDto(Json Body)|Bearer token
-POST     |/api/auth/register | Sisteme kayıt yapar  |RegisterDto(Json Body)|String
+Method   |   Path   |   Description|Request Parameters|Request Paramete
+---------|----------|--------------|----------|-----------
+POST     |/api/auth/login | Sisteme giriş yapar  |LoginDto(Json Body) |Bearer token
+POST     |/api/auth/register | Sisteme kayıt yapar  |RegisterDto(Json Body) |String
 
  
