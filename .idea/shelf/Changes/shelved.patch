@@ -1,0 +1,2239 @@
+Index: flight-search/src/main/java/com/amadeus/flightsearch/model/Airport.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/model/Airport.java b/flight-search/src/main/java/com/amadeus/flightsearch/model/Airport.java
+new file mode 100644
+--- /dev/null	(date 1694445991655)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/model/Airport.java	(date 1694445991655)
+@@ -0,0 +1,22 @@
++package com.amadeus.flightsearch.model;
++
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++import javax.persistence.*;
++
++@Entity
++@Table
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++public class Airport {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    private String city;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/repository/AirportRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/repository/AirportRepository.java b/flight-search/src/main/java/com/amadeus/flightsearch/repository/AirportRepository.java
+new file mode 100644
+--- /dev/null	(date 1694451801306)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/repository/AirportRepository.java	(date 1694451801306)
+@@ -0,0 +1,8 @@
++package com.amadeus.flightsearch.repository;
++
++import com.amadeus.flightsearch.model.Airport;
++import org.springframework.data.jpa.repository.JpaRepository;
++
++public interface AirportRepository extends JpaRepository<Airport, Long> {
++    Boolean existsByCity(String city);
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/controller/AirportController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/controller/AirportController.java b/flight-search/src/main/java/com/amadeus/flightsearch/controller/AirportController.java
+new file mode 100644
+--- /dev/null	(date 1694447022474)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/controller/AirportController.java	(date 1694447022474)
+@@ -0,0 +1,47 @@
++package com.amadeus.flightsearch.controller;
++
++import com.amadeus.flightsearch.dto.AirportDto;
++import com.amadeus.flightsearch.dto.FlightDto;
++import com.amadeus.flightsearch.dto.UpdateFlightDto;
++import com.amadeus.flightsearch.service.AirportService;
++import lombok.RequiredArgsConstructor;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.annotation.Secured;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++
++@RestController
++@RequestMapping("/api/airport")
++@RequiredArgsConstructor
++public class AirportController {
++
++    private final AirportService airportService;
++    @PostMapping
++    @Secured("ADMIN")
++    public ResponseEntity<String> createAirport(@RequestBody AirportDto airportDto){
++        airportService.createAirport(airportDto);
++        return new ResponseEntity<>("Airport created successfully", HttpStatus.CREATED);
++    }
++    @GetMapping
++    public ResponseEntity<List<AirportDto>> getAllAirport(){
++        return new ResponseEntity<>(airportService.getAllAirport(),HttpStatus.OK);
++    }
++    @GetMapping("/{id}")
++    public ResponseEntity<AirportDto> getAirportById(@PathVariable Long id){
++        return new ResponseEntity<>(airportService.getAirportById(id), HttpStatus.OK);
++    }
++    @PutMapping("/{id}")
++    @Secured("ADMIN")
++    public ResponseEntity<String> updateAirportById(@PathVariable Long id, @RequestBody AirportDto airportDto){
++        airportService.updateAirportById(id,airportDto);
++        return new ResponseEntity<>("Airport updated successfully", HttpStatus.OK);
++    }
++    @DeleteMapping("/{id}")
++    @Secured("ADMIN")
++    public ResponseEntity<String> deleteAirportById(@PathVariable Long id){
++        airportService.deleteAirportById(id);
++        return new ResponseEntity<>("Airport deleted successfully", HttpStatus.OK);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/service/AirportService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/service/AirportService.java b/flight-search/src/main/java/com/amadeus/flightsearch/service/AirportService.java
+new file mode 100644
+--- /dev/null	(date 1694451821499)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/service/AirportService.java	(date 1694451821499)
+@@ -0,0 +1,51 @@
++package com.amadeus.flightsearch.service;
++
++import com.amadeus.flightsearch.dto.AirportDto;
++import com.amadeus.flightsearch.exception.ResourceNotFoundException;
++import com.amadeus.flightsearch.model.Airport;
++import com.amadeus.flightsearch.repository.AirportRepository;
++import lombok.RequiredArgsConstructor;
++import org.modelmapper.ModelMapper;
++import org.springframework.stereotype.Service;
++
++import java.util.List;
++import java.util.stream.Collectors;
++
++@Service
++@RequiredArgsConstructor
++public class AirportService {
++
++    private final AirportRepository airportRepository;
++    private final ModelMapper modelMapper;
++    public void createAirport(AirportDto airportDto) {
++        Airport airport = modelMapper.map(airportDto, Airport.class);
++        airportRepository.save(airport);
++    }
++
++    public List<AirportDto> getAllAirport() {
++        List<Airport> airports = airportRepository.findAll();
++        return airports.stream().map(airport -> modelMapper.map(airport, AirportDto.class)).collect(Collectors.toList());
++    }
++
++    public AirportDto getAirportById(Long id) {
++        Airport airport = airportRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Airport not found with id: "+id));
++        return modelMapper.map(airport, AirportDto.class);
++    }
++
++    public void updateAirportById(Long id, AirportDto airportDto) {
++        Airport airport = airportRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Airport not found with id: "+id));
++        airport.setCity(airportDto.getCity());
++        airportRepository.save(airport);
++    }
++
++    public void deleteAirportById(Long id) {
++        airportRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Airport not found with id: "+id));
++        airportRepository.deleteById(id);
++    }
++    public boolean isAirportExist(String city){
++       return airportRepository.existsByCity(city);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/service/FlightService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/service/FlightService.java b/flight-search/src/main/java/com/amadeus/flightsearch/service/FlightService.java
+new file mode 100644
+--- /dev/null	(date 1694451991959)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/service/FlightService.java	(date 1694451991959)
+@@ -0,0 +1,62 @@
++package com.amadeus.flightsearch.service;
++
++import com.amadeus.flightsearch.dto.FlightDto;
++import com.amadeus.flightsearch.dto.UpdateFlightDto;
++import com.amadeus.flightsearch.exception.ResourceNotFoundException;
++import com.amadeus.flightsearch.model.Flight;
++import com.amadeus.flightsearch.repository.FlightRepository;
++import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
++import org.modelmapper.ModelMapper;
++import org.springframework.stereotype.Service;
++
++import java.util.List;
++import java.util.stream.Collectors;
++
++@Service
++@RequiredArgsConstructor
++@Slf4j
++public class FlightService {
++
++    private final FlightRepository flightRepository;
++
++    private final AirportService airportService;
++
++    private final ModelMapper modelMapper;
++    public void createFlight(FlightDto flightDto) {
++        if(!airportService.isAirportExist(flightDto.getDepartureAirport()) || !airportService.isAirportExist(flightDto.getArrivalAirport())){
++            throw new ResourceNotFoundException("Departure airport or Arrival airport not exist");
++        }
++
++        Flight flight = modelMapper.map(flightDto, Flight.class);
++        flightRepository.save(flight);
++    }
++
++    public List<FlightDto> getAllFlight() {
++        List<Flight> flights = flightRepository.findAll();
++        return flights.stream().map(flight -> modelMapper.map(flight,FlightDto.class)).collect(Collectors.toList());
++    }
++
++    public FlightDto getFlightById(Long id) {
++        Flight flight = flightRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Flight not found with id:"+id));
++        return modelMapper.map(flight,FlightDto.class);
++    }
++
++    public void updateFlightById(Long id, UpdateFlightDto updateFlightDto) {
++        Flight flight = flightRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Flight not found with id:"+id));
++        //log.info(updateFlightDto.getArrivalTime().toString());
++        flight.setPrice(updateFlightDto.getPrice());
++        flight.setArrivalTime(updateFlightDto.getArrivalTime());
++        flight.setDepartureTime(updateFlightDto.getDepartureTime());
++
++        flightRepository.save(flight);
++    }
++
++    public void deleteFlightById(Long id) {
++        flightRepository.findById(id)
++                .orElseThrow(() -> new ResourceNotFoundException("Flight not found with id:"+id));
++        flightRepository.deleteById(id);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/FlightDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/FlightDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/FlightDto.java
+new file mode 100644
+--- /dev/null	(date 1694271966093)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/FlightDto.java	(date 1694271966093)
+@@ -0,0 +1,28 @@
++package com.amadeus.flightsearch.dto;
++
++import com.fasterxml.jackson.annotation.JsonFormat;
++import lombok.AllArgsConstructor;
++import lombok.Builder;
++import lombok.Data;
++import lombok.NoArgsConstructor;
++
++import java.time.LocalDateTime;
++import java.util.Date;
++
++@Data
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class FlightDto {
++
++    private String departureAirport;
++
++    private String arrivalAirport;
++
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime departureTime;
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime arrivalTime;
++
++    private long price;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/exception/ResourceNotFoundException.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/exception/ResourceNotFoundException.java b/flight-search/src/main/java/com/amadeus/flightsearch/exception/ResourceNotFoundException.java
+new file mode 100644
+--- /dev/null	(date 1694213456391)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/exception/ResourceNotFoundException.java	(date 1694213456391)
+@@ -0,0 +1,11 @@
++package com.amadeus.flightsearch.exception;
++
++import org.springframework.http.HttpStatus;
++import org.springframework.web.bind.annotation.ResponseStatus;
++
++@ResponseStatus(HttpStatus.NOT_FOUND)
++public class ResourceNotFoundException extends RuntimeException {
++    public ResourceNotFoundException(String message) {
++        super(message);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/UpdateFlightDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/UpdateFlightDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/UpdateFlightDto.java
+new file mode 100644
+--- /dev/null	(date 1694272192093)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/UpdateFlightDto.java	(date 1694272192093)
+@@ -0,0 +1,21 @@
++package com.amadeus.flightsearch.dto;
++
++import com.fasterxml.jackson.annotation.JsonFormat;
++import lombok.*;
++
++import java.time.LocalDateTime;
++import java.util.Date;
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class UpdateFlightDto {
++
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime departureTime;
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime arrivalTime;
++
++    private long price;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/AirportDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/AirportDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/AirportDto.java
+new file mode 100644
+--- /dev/null	(date 1694279780044)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/AirportDto.java	(date 1694279780044)
+@@ -0,0 +1,14 @@
++package com.amadeus.flightsearch.dto;
++
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++public class AirportDto {
++    private String city;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/model/User.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/model/User.java b/flight-search/src/main/java/com/amadeus/flightsearch/model/User.java
+new file mode 100644
+--- /dev/null	(date 1694444207076)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/model/User.java	(date 1694444207076)
+@@ -0,0 +1,26 @@
++package com.amadeus.flightsearch.model;
++
++import lombok.Data;
++import lombok.NoArgsConstructor;
++
++import javax.persistence.*;
++import java.util.ArrayList;
++import java.util.List;
++
++@Entity
++@Table(name = "users")
++@Data
++@NoArgsConstructor
++public class User {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    private String username;
++
++    private String password;
++    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
++    @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
++            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
++    private List<Role> roles = new ArrayList<>();
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/controller/SearchController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/controller/SearchController.java b/flight-search/src/main/java/com/amadeus/flightsearch/controller/SearchController.java
+new file mode 100644
+--- /dev/null	(date 1694364148595)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/controller/SearchController.java	(date 1694364148595)
+@@ -0,0 +1,35 @@
++package com.amadeus.flightsearch.controller;
++
++import com.amadeus.flightsearch.dto.SearchFlightResponse;
++import com.amadeus.flightsearch.service.SearchService;
++import lombok.RequiredArgsConstructor;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.web.bind.annotation.GetMapping;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RequestParam;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.time.LocalDate;
++import java.time.LocalDateTime;
++import java.util.List;
++
++@RestController
++@RequestMapping("/api/search")
++@RequiredArgsConstructor
++public class SearchController {
++
++    private final SearchService searchService;
++
++
++    //http://localhost:8080/api/search?from=ankara&to=istanbul&departure=2023-10-01&arrival=2023-10-03
++    @GetMapping
++    public ResponseEntity<List<SearchFlightResponse>> searchFlights(
++            @RequestParam(name = "from",required = true) String from,
++            @RequestParam(name = "to",required = true) String to,
++            @RequestParam(name = "departure",required = true) LocalDate departure,
++            @RequestParam(name = "return", required = false) LocalDate arrival){
++
++        return new ResponseEntity<>(searchService.searchFlights(from, to, departure, arrival), HttpStatus.OK);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/service/SearchService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/service/SearchService.java b/flight-search/src/main/java/com/amadeus/flightsearch/service/SearchService.java
+new file mode 100644
+--- /dev/null	(date 1694383487444)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/service/SearchService.java	(date 1694383487444)
+@@ -0,0 +1,57 @@
++package com.amadeus.flightsearch.service;
++
++import com.amadeus.flightsearch.dto.SearchFlightResponse;
++import com.amadeus.flightsearch.model.Flight;
++import com.amadeus.flightsearch.repository.FlightRepository;
++import lombok.RequiredArgsConstructor;
++import lombok.extern.slf4j.Slf4j;
++import org.springframework.stereotype.Service;
++
++import java.time.LocalDate;
++import java.time.LocalDateTime;
++import java.time.LocalTime;
++import java.util.List;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
++
++@Service
++@RequiredArgsConstructor
++@Slf4j
++public class SearchService {
++
++    private final FlightRepository flightRepository;
++    public List<SearchFlightResponse> searchFlights(String from, String to, LocalDate departure, LocalDate arrival) {
++
++
++        if(arrival==null){
++            List<Flight> flights = flightRepository.findFlightsOnlyDeparture(from, to, departure);
++            return flights.stream().map(this::mapToSearchFlightResponse).collect(Collectors.toList());
++        }
++
++            List<Flight> flights = flightRepository.findFlightsOnlyDeparture(from, to, departure);
++            List<SearchFlightResponse> response1= flights.stream().map(this::mapToSearchFlightResponse).toList();
++
++                List<Flight> flightsReturn = flightRepository.findFlightsOnlyArrival(from, to, arrival);
++        List<SearchFlightResponse> response2= flightsReturn.stream().map(this::mapToSearchFlightResponseForRetur).toList();
++
++        return Stream.concat(response1.stream(),response2.stream()).collect(Collectors.toList());
++    }
++
++    private SearchFlightResponse mapToSearchFlightResponse(Flight flight) {
++        return SearchFlightResponse.builder()
++                .departureAirport(flight.getDepartureAirport())
++                .arrivalAirport(flight.getArrivalAirport())
++                .departureTime(flight.getDepartureTime())
++                .price(flight.getPrice())
++                .build();
++    }
++    private SearchFlightResponse mapToSearchFlightResponseForRetur(Flight flight) {
++        return SearchFlightResponse.builder()
++                .departureAirport(flight.getArrivalAirport())
++                .arrivalAirport(flight.getDepartureAirport())
++                .departureTime(flight.getArrivalTime())
++                .price(flight.getPrice())
++                .build();
++    }
++
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/model/Role.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/model/Role.java b/flight-search/src/main/java/com/amadeus/flightsearch/model/Role.java
+new file mode 100644
+--- /dev/null	(date 1694444196227)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/model/Role.java	(date 1694444196227)
+@@ -0,0 +1,16 @@
++package com.amadeus.flightsearch.model;
++import lombok.Getter;
++import lombok.Setter;
++
++import javax.persistence.*;
++@Setter
++@Getter
++@Entity
++@Table(name = "roles")
++public class Role {
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    private String name;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/JWTGenerator.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTGenerator.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTGenerator.java
+new file mode 100644
+--- /dev/null	(date 1694445198488)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTGenerator.java	(date 1694445198488)
+@@ -0,0 +1,53 @@
++package com.amadeus.flightsearch.security;
++
++import io.jsonwebtoken.Claims;
++import io.jsonwebtoken.Jwts;
++import io.jsonwebtoken.SignatureAlgorithm;
++import io.jsonwebtoken.security.Keys;
++import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
++import org.springframework.security.core.Authentication;
++import org.springframework.stereotype.Component;
++
++import java.security.Key;
++import java.util.Date;
++
++@Component
++public class JWTGenerator {
++    private static final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
++
++    public String generateToken(Authentication authentication) {
++        String username = authentication.getName();
++        Date currentDate = new Date();
++        Date expireDate = new Date(currentDate.getTime() + SecurityConstants.JWT_EXPIRATION);
++
++        String token = Jwts.builder()
++                .setSubject(username)
++                .setIssuedAt( new Date())
++                .setExpiration(expireDate)
++                .signWith(key,SignatureAlgorithm.HS512)
++                .compact();
++        System.out.println("New token :");
++        System.out.println(token);
++        return token;
++    }
++    public String getUsernameFromJWT(String token){
++        Claims claims = Jwts.parserBuilder()
++                .setSigningKey(key)
++                .build()
++                .parseClaimsJws(token)
++                .getBody();
++        return claims.getSubject();
++    }
++
++    public boolean validateToken(String token) {
++        try {
++            Jwts.parserBuilder()
++                    .setSigningKey(key)
++                    .build()
++                    .parseClaimsJws(token);
++            return true;
++        } catch (Exception ex) {
++            throw new AuthenticationCredentialsNotFoundException("JWT was exprired or incorrect",ex.fillInStackTrace());
++        }
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/CustomUserDetailsService.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/CustomUserDetailsService.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/CustomUserDetailsService.java
+new file mode 100644
+--- /dev/null	(date 1694445056795)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/CustomUserDetailsService.java	(date 1694445056795)
+@@ -0,0 +1,36 @@
++package com.amadeus.flightsearch.security;
++
++import com.amadeus.flightsearch.model.Role;
++import com.amadeus.flightsearch.model.User;
++import com.amadeus.flightsearch.repository.UserRepository;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.security.core.GrantedAuthority;
++import org.springframework.security.core.authority.SimpleGrantedAuthority;
++import org.springframework.security.core.userdetails.UserDetails;
++import org.springframework.security.core.userdetails.UserDetailsService;
++import org.springframework.security.core.userdetails.UsernameNotFoundException;
++import org.springframework.stereotype.Service;
++
++import java.util.Collection;
++import java.util.List;
++import java.util.stream.Collectors;
++
++@Service
++public class CustomUserDetailsService implements UserDetailsService {
++    private UserRepository userRepository;
++
++    @Autowired
++    public CustomUserDetailsService(UserRepository userRepository) {
++        this.userRepository = userRepository;
++    }
++
++    @Override
++    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
++        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username not found"));
++        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), mapRolesToAuthorities(user.getRoles()));
++    }
++
++    private Collection<GrantedAuthority> mapRolesToAuthorities(List<Role> roles) {
++        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getName())).collect(Collectors.toList());
++    }
++}
+Index: flight-search/pom.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/pom.xml b/flight-search/pom.xml
+new file mode 100644
+--- /dev/null	(date 1694444584242)
++++ b/flight-search/pom.xml	(date 1694444584242)
+@@ -0,0 +1,93 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
++	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
++	<modelVersion>4.0.0</modelVersion>
++	<parent>
++		<groupId>org.springframework.boot</groupId>
++		<artifactId>spring-boot-starter-parent</artifactId>
++		<version>2.7.4</version>
++		<relativePath/> <!-- lookup parent from repository -->
++	</parent>
++	<groupId>com.amadeus</groupId>
++	<artifactId>flight-search</artifactId>
++	<version>0.0.1-SNAPSHOT</version>
++	<name>flight-search</name>
++	<description>Flight Search Application</description>
++	<properties>
++		<java.version>17</java.version>
++	</properties>
++	<dependencies>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-data-jpa</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-validation</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-web</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>io.jsonwebtoken</groupId>
++			<artifactId>jjwt-api</artifactId>
++			<version>0.11.5</version>
++		</dependency>
++		<dependency>
++			<groupId>io.jsonwebtoken</groupId>
++			<artifactId>jjwt-impl</artifactId>
++			<version>0.11.5</version>
++			<scope>runtime</scope>
++		</dependency>
++		<dependency>
++			<groupId>io.jsonwebtoken</groupId>
++			<artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
++			<version>0.11.5</version>
++			<scope>runtime</scope>
++		</dependency>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-security</artifactId>
++		</dependency>
++
++		<dependency>
++			<groupId>org.postgresql</groupId>
++			<artifactId>postgresql</artifactId>
++			<scope>runtime</scope>
++		</dependency>
++		<dependency>
++			<groupId>org.projectlombok</groupId>
++			<artifactId>lombok</artifactId>
++			<optional>true</optional>
++		</dependency>
++		<dependency>
++			<groupId>org.modelmapper</groupId>
++			<artifactId>modelmapper</artifactId>
++			<version>3.1.1</version>
++		</dependency>
++		<dependency>
++			<groupId>org.springframework.boot</groupId>
++			<artifactId>spring-boot-starter-test</artifactId>
++			<scope>test</scope>
++		</dependency>
++	</dependencies>
++
++	<build>
++		<plugins>
++			<plugin>
++				<groupId>org.springframework.boot</groupId>
++				<artifactId>spring-boot-maven-plugin</artifactId>
++				<configuration>
++					<excludes>
++						<exclude>
++							<groupId>org.projectlombok</groupId>
++							<artifactId>lombok</artifactId>
++						</exclude>
++					</excludes>
++				</configuration>
++			</plugin>
++		</plugins>
++	</build>
++
++</project>
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/JwtAuthEntryPoint.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/JwtAuthEntryPoint.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/JwtAuthEntryPoint.java
+new file mode 100644
+--- /dev/null	(date 1694444843579)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/JwtAuthEntryPoint.java	(date 1694444843579)
+@@ -0,0 +1,19 @@
++package com.amadeus.flightsearch.security;
++
++import org.springframework.security.core.AuthenticationException;
++import org.springframework.security.web.AuthenticationEntryPoint;
++import org.springframework.stereotype.Component;
++
++import javax.servlet.ServletException;
++import javax.servlet.http.HttpServletRequest;
++import javax.servlet.http.HttpServletResponse;
++import java.io.IOException;
++
++@Component
++public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
++    @Override
++    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
++        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
++    }
++
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConstants.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConstants.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConstants.java
+new file mode 100644
+--- /dev/null	(date 1694444883089)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConstants.java	(date 1694444883089)
+@@ -0,0 +1,5 @@
++package com.amadeus.flightsearch.security;
++
++public class SecurityConstants {
++    public static final long JWT_EXPIRATION = 70000;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/controller/AuthController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/controller/AuthController.java b/flight-search/src/main/java/com/amadeus/flightsearch/controller/AuthController.java
+new file mode 100644
+--- /dev/null	(date 1694446545197)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/controller/AuthController.java	(date 1694446545197)
+@@ -0,0 +1,73 @@
++package com.amadeus.flightsearch.controller;
++
++import com.amadeus.flightsearch.dto.AuthResponseDto;
++import com.amadeus.flightsearch.dto.LoginDto;
++import com.amadeus.flightsearch.dto.RegisterDto;
++import com.amadeus.flightsearch.model.Role;
++import com.amadeus.flightsearch.model.User;
++import com.amadeus.flightsearch.repository.RoleRepository;
++import com.amadeus.flightsearch.repository.UserRepository;
++import com.amadeus.flightsearch.security.JWTGenerator;
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.authentication.AuthenticationManager;
++import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
++import org.springframework.security.core.Authentication;
++import org.springframework.security.core.context.SecurityContextHolder;
++import org.springframework.security.crypto.password.PasswordEncoder;
++import org.springframework.web.bind.annotation.PostMapping;
++import org.springframework.web.bind.annotation.RequestBody;
++import org.springframework.web.bind.annotation.RequestMapping;
++import org.springframework.web.bind.annotation.RestController;
++
++import java.util.Collections;
++
++@RestController
++@RequestMapping("/api/auth")
++public class AuthController {
++    private final AuthenticationManager authenticationManager;
++    private final UserRepository userRepository;
++    private final RoleRepository roleRepository;
++    private final PasswordEncoder passwordEncoder;
++    private final JWTGenerator jwtGenerator;
++
++    @Autowired
++    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
++                          RoleRepository roleRepository, PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
++        this.authenticationManager = authenticationManager;
++        this.userRepository = userRepository;
++        this.roleRepository = roleRepository;
++        this.passwordEncoder = passwordEncoder;
++        this.jwtGenerator = jwtGenerator;
++    }
++
++    @PostMapping("/login")
++    public ResponseEntity<AuthResponseDto> login(@RequestBody LoginDto loginDto){
++        Authentication authentication = authenticationManager.authenticate(
++                new UsernamePasswordAuthenticationToken(
++                        loginDto.getUsername(),
++                        loginDto.getPassword()));
++        SecurityContextHolder.getContext().setAuthentication(authentication);
++        String token = jwtGenerator.generateToken(authentication);
++        return new ResponseEntity<>(new AuthResponseDto(token), HttpStatus.OK);
++    }
++
++    @PostMapping("/register")
++    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
++        if (userRepository.existsByUsername(registerDto.getUsername())) {
++            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
++        }
++
++        User user = new User();
++        user.setUsername(registerDto.getUsername());
++        user.setPassword(passwordEncoder.encode((registerDto.getPassword())));
++
++        Role roles = roleRepository.findByName("ADMIN").get();
++        user.setRoles(Collections.singletonList(roles));
++
++        userRepository.save(user);
++
++        return new ResponseEntity<>("User registered success!", HttpStatus.OK);
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/repository/UserRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/repository/UserRepository.java b/flight-search/src/main/java/com/amadeus/flightsearch/repository/UserRepository.java
+new file mode 100644
+--- /dev/null	(date 1694444270293)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/repository/UserRepository.java	(date 1694444270293)
+@@ -0,0 +1,11 @@
++package com.amadeus.flightsearch.repository;
++
++import com.amadeus.flightsearch.model.User;
++import org.springframework.data.jpa.repository.JpaRepository;
++
++import java.util.Optional;
++
++public interface UserRepository extends JpaRepository<User, Long> {
++    Optional<User> findByUsername(String username);
++    Boolean existsByUsername(String username);
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightDto.java
+new file mode 100644
+--- /dev/null	(date 1694362786407)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightDto.java	(date 1694362786407)
+@@ -0,0 +1,5 @@
++package com.amadeus.flightsearch.dto;
++
++public class SearchFlightDto {
++
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightResponse.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightResponse.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightResponse.java
+new file mode 100644
+--- /dev/null	(date 1694383487440)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightResponse.java	(date 1694383487440)
+@@ -0,0 +1,24 @@
++package com.amadeus.flightsearch.dto;
++
++import com.fasterxml.jackson.annotation.JsonFormat;
++import lombok.AllArgsConstructor;
++import lombok.Builder;
++import lombok.Data;
++import lombok.NoArgsConstructor;
++
++import java.time.LocalDateTime;
++
++@Data
++@NoArgsConstructor
++@AllArgsConstructor
++@Builder
++public class SearchFlightResponse {
++    private String departureAirport;
++
++    private String arrivalAirport;
++
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime departureTime;
++
++    private long price;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/repository/RoleRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/repository/RoleRepository.java b/flight-search/src/main/java/com/amadeus/flightsearch/repository/RoleRepository.java
+new file mode 100644
+--- /dev/null	(date 1694446136323)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/repository/RoleRepository.java	(date 1694446136323)
+@@ -0,0 +1,10 @@
++package com.amadeus.flightsearch.repository;
++
++import com.amadeus.flightsearch.model.Role;
++import org.springframework.data.jpa.repository.JpaRepository;
++
++import java.util.Optional;
++
++public interface RoleRepository extends JpaRepository<Role, Long> {
++    Optional<Role> findByName(String name);
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConfig.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConfig.java
+new file mode 100644
+--- /dev/null	(date 1694451281172)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConfig.java	(date 1694451281172)
+@@ -0,0 +1,67 @@
++package com.amadeus.flightsearch.security;
++
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++import org.springframework.http.HttpMethod;
++import org.springframework.security.authentication.AuthenticationManager;
++import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
++import org.springframework.security.config.annotation.web.builders.HttpSecurity;
++import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
++import org.springframework.security.config.http.SessionCreationPolicy;
++import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
++import org.springframework.security.crypto.password.PasswordEncoder;
++import org.springframework.security.web.SecurityFilterChain;
++import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
++
++@Configuration
++@EnableWebSecurity
++public class SecurityConfig {
++    private JwtAuthEntryPoint authEntryPoint;
++    private CustomUserDetailsService userDetailsService;
++    @Autowired
++    public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthEntryPoint authEntryPoint) {
++        this.userDetailsService = userDetailsService;
++        this.authEntryPoint = authEntryPoint;
++    }
++
++    @Bean
++    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
++        http
++                .csrf().disable()
++                .exceptionHandling()
++                .authenticationEntryPoint(authEntryPoint)
++                .and()
++                .sessionManagement()
++                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
++                .and()
++                .authorizeRequests()
++                .antMatchers("/api/auth/**").permitAll()
++                .antMatchers(HttpMethod.POST,"/api/flights/cre").hasRole("ADMIN")
++                .antMatchers(HttpMethod.DELETE,"/api/flights").hasRole("ADMIN")
++                .antMatchers(HttpMethod.PUT,"/api/flights").hasRole("ADMIN")
++                .antMatchers(HttpMethod.POST,"/api/airport").hasRole("ADMIN")
++                .antMatchers(HttpMethod.DELETE,"/api/airport").hasRole("ADMIN")
++                .anyRequest().authenticated()
++                .and()
++                .httpBasic();
++        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
++        return http.build();
++    }
++
++    @Bean
++    public AuthenticationManager authenticationManager(
++            AuthenticationConfiguration authenticationConfiguration) throws Exception {
++        return authenticationConfiguration.getAuthenticationManager();
++    }
++
++    @Bean
++    PasswordEncoder passwordEncoder() {
++        return new BCryptPasswordEncoder();
++    }
++
++    @Bean
++    public  JWTAuthenticationFilter jwtAuthenticationFilter() {
++        return new JWTAuthenticationFilter();
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/security/JWTAuthenticationFilter.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTAuthenticationFilter.java b/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTAuthenticationFilter.java
+new file mode 100644
+--- /dev/null	(date 1694445111858)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTAuthenticationFilter.java	(date 1694445111858)
+@@ -0,0 +1,48 @@
++package com.amadeus.flightsearch.security;
++
++import org.springframework.beans.factory.annotation.Autowired;
++import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
++import org.springframework.security.core.context.SecurityContextHolder;
++import org.springframework.security.core.userdetails.UserDetails;
++import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
++import org.springframework.util.StringUtils;
++import org.springframework.web.filter.OncePerRequestFilter;
++
++import javax.servlet.FilterChain;
++import javax.servlet.ServletException;
++import javax.servlet.http.HttpServletRequest;
++import javax.servlet.http.HttpServletResponse;
++import java.io.IOException;
++
++public class JWTAuthenticationFilter extends OncePerRequestFilter {
++    @Autowired
++    private JWTGenerator tokenGenerator;
++    @Autowired
++    private CustomUserDetailsService customUserDetailsService;
++
++
++    @Override
++    protected void doFilterInternal(HttpServletRequest request,
++                                    HttpServletResponse response,
++                                    FilterChain filterChain) throws ServletException, IOException {
++        String token = getJWTFromRequest(request);
++        if(StringUtils.hasText(token) && tokenGenerator.validateToken(token)) {
++            String username = tokenGenerator.getUsernameFromJWT(token);
++
++            UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
++            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null,
++                    userDetails.getAuthorities());
++            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
++            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
++        }
++        filterChain.doFilter(request, response);
++    }
++
++    private String getJWTFromRequest(HttpServletRequest request) {
++        String bearerToken = request.getHeader("Authorization");
++        if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
++            return bearerToken.substring(7, bearerToken.length());
++        }
++        return null;
++    }
++}
+Index: flight-search/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/.gitignore b/flight-search/.gitignore
+new file mode 100644
+--- /dev/null	(date 1694211103024)
++++ b/flight-search/.gitignore	(date 1694211103024)
+@@ -0,0 +1,33 @@
++HELP.md
++target/
++!.mvn/wrapper/maven-wrapper.jar
++!**/src/main/**/target/
++!**/src/test/**/target/
++
++### STS ###
++.apt_generated
++.classpath
++.factorypath
++.project
++.settings
++.springBeans
++.sts4-cache
++
++### IntelliJ IDEA ###
++.idea
++*.iws
++*.iml
++*.ipr
++
++### NetBeans ###
++/nbproject/private/
++/nbbuild/
++/dist/
++/nbdist/
++/.nb-gradle/
++build/
++!**/src/main/**/build/
++!**/src/test/**/build/
++
++### VS Code ###
++.vscode/
+Index: .idea/uiDesigner.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/uiDesigner.xml b/.idea/uiDesigner.xml
+new file mode 100644
+--- /dev/null	(date 1694445406501)
++++ b/.idea/uiDesigner.xml	(date 1694445406501)
+@@ -0,0 +1,124 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Palette2">
++    <group name="Swing">
++      <item class="com.intellij.uiDesigner.HSpacer" tooltip-text="Horizontal Spacer" icon="/com/intellij/uiDesigner/icons/hspacer.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="1" hsize-policy="6" anchor="0" fill="1" />
++      </item>
++      <item class="com.intellij.uiDesigner.VSpacer" tooltip-text="Vertical Spacer" icon="/com/intellij/uiDesigner/icons/vspacer.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="1" anchor="0" fill="2" />
++      </item>
++      <item class="javax.swing.JPanel" icon="/com/intellij/uiDesigner/icons/panel.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="3" hsize-policy="3" anchor="0" fill="3" />
++      </item>
++      <item class="javax.swing.JScrollPane" icon="/com/intellij/uiDesigner/icons/scrollPane.svg" removable="false" auto-create-binding="false" can-attach-label="true">
++        <default-constraints vsize-policy="7" hsize-policy="7" anchor="0" fill="3" />
++      </item>
++      <item class="javax.swing.JButton" icon="/com/intellij/uiDesigner/icons/button.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="3" anchor="0" fill="1" />
++        <initial-values>
++          <property name="text" value="Button" />
++        </initial-values>
++      </item>
++      <item class="javax.swing.JRadioButton" icon="/com/intellij/uiDesigner/icons/radioButton.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="3" anchor="8" fill="0" />
++        <initial-values>
++          <property name="text" value="RadioButton" />
++        </initial-values>
++      </item>
++      <item class="javax.swing.JCheckBox" icon="/com/intellij/uiDesigner/icons/checkBox.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="3" anchor="8" fill="0" />
++        <initial-values>
++          <property name="text" value="CheckBox" />
++        </initial-values>
++      </item>
++      <item class="javax.swing.JLabel" icon="/com/intellij/uiDesigner/icons/label.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="0" anchor="8" fill="0" />
++        <initial-values>
++          <property name="text" value="Label" />
++        </initial-values>
++      </item>
++      <item class="javax.swing.JTextField" icon="/com/intellij/uiDesigner/icons/textField.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="8" fill="1">
++          <preferred-size width="150" height="-1" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JPasswordField" icon="/com/intellij/uiDesigner/icons/passwordField.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="8" fill="1">
++          <preferred-size width="150" height="-1" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JFormattedTextField" icon="/com/intellij/uiDesigner/icons/formattedTextField.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="8" fill="1">
++          <preferred-size width="150" height="-1" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JTextArea" icon="/com/intellij/uiDesigner/icons/textArea.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JTextPane" icon="/com/intellij/uiDesigner/icons/textPane.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JEditorPane" icon="/com/intellij/uiDesigner/icons/editorPane.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JComboBox" icon="/com/intellij/uiDesigner/icons/comboBox.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="0" hsize-policy="2" anchor="8" fill="1" />
++      </item>
++      <item class="javax.swing.JTable" icon="/com/intellij/uiDesigner/icons/table.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JList" icon="/com/intellij/uiDesigner/icons/list.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="2" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JTree" icon="/com/intellij/uiDesigner/icons/tree.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3">
++          <preferred-size width="150" height="50" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JTabbedPane" icon="/com/intellij/uiDesigner/icons/tabbedPane.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="3" hsize-policy="3" anchor="0" fill="3">
++          <preferred-size width="200" height="200" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JSplitPane" icon="/com/intellij/uiDesigner/icons/splitPane.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="3" hsize-policy="3" anchor="0" fill="3">
++          <preferred-size width="200" height="200" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JSpinner" icon="/com/intellij/uiDesigner/icons/spinner.svg" removable="false" auto-create-binding="true" can-attach-label="true">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="8" fill="1" />
++      </item>
++      <item class="javax.swing.JSlider" icon="/com/intellij/uiDesigner/icons/slider.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="8" fill="1" />
++      </item>
++      <item class="javax.swing.JSeparator" icon="/com/intellij/uiDesigner/icons/separator.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="6" anchor="0" fill="3" />
++      </item>
++      <item class="javax.swing.JProgressBar" icon="/com/intellij/uiDesigner/icons/progressbar.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="0" fill="1" />
++      </item>
++      <item class="javax.swing.JToolBar" icon="/com/intellij/uiDesigner/icons/toolbar.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="6" anchor="0" fill="1">
++          <preferred-size width="-1" height="20" />
++        </default-constraints>
++      </item>
++      <item class="javax.swing.JToolBar$Separator" icon="/com/intellij/uiDesigner/icons/toolbarSeparator.svg" removable="false" auto-create-binding="false" can-attach-label="false">
++        <default-constraints vsize-policy="0" hsize-policy="0" anchor="0" fill="1" />
++      </item>
++      <item class="javax.swing.JScrollBar" icon="/com/intellij/uiDesigner/icons/scrollbar.svg" removable="false" auto-create-binding="true" can-attach-label="false">
++        <default-constraints vsize-policy="6" hsize-policy="0" anchor="0" fill="2" />
++      </item>
++    </group>
++  </component>
++</project>
+\ No newline at end of file
+Index: flight-search/mvnw
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/mvnw b/flight-search/mvnw
+new file mode 100644
+--- /dev/null	(date 1694211103071)
++++ b/flight-search/mvnw	(date 1694211103071)
+@@ -0,0 +1,308 @@
++#!/bin/sh
++# ----------------------------------------------------------------------------
++# Licensed to the Apache Software Foundation (ASF) under one
++# or more contributor license agreements.  See the NOTICE file
++# distributed with this work for additional information
++# regarding copyright ownership.  The ASF licenses this file
++# to you under the Apache License, Version 2.0 (the
++# "License"); you may not use this file except in compliance
++# with the License.  You may obtain a copy of the License at
++#
++#    https://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing,
++# software distributed under the License is distributed on an
++# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++# KIND, either express or implied.  See the License for the
++# specific language governing permissions and limitations
++# under the License.
++# ----------------------------------------------------------------------------
++
++# ----------------------------------------------------------------------------
++# Apache Maven Wrapper startup batch script, version 3.2.0
++#
++# Required ENV vars:
++# ------------------
++#   JAVA_HOME - location of a JDK home dir
++#
++# Optional ENV vars
++# -----------------
++#   MAVEN_OPTS - parameters passed to the Java VM when running Maven
++#     e.g. to debug Maven itself, use
++#       set MAVEN_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
++#   MAVEN_SKIP_RC - flag to disable loading of mavenrc files
++# ----------------------------------------------------------------------------
++
++if [ -z "$MAVEN_SKIP_RC" ] ; then
++
++  if [ -f /usr/local/etc/mavenrc ] ; then
++    . /usr/local/etc/mavenrc
++  fi
++
++  if [ -f /etc/mavenrc ] ; then
++    . /etc/mavenrc
++  fi
++
++  if [ -f "$HOME/.mavenrc" ] ; then
++    . "$HOME/.mavenrc"
++  fi
++
++fi
++
++# OS specific support.  $var _must_ be set to either true or false.
++cygwin=false;
++darwin=false;
++mingw=false
++case "$(uname)" in
++  CYGWIN*) cygwin=true ;;
++  MINGW*) mingw=true;;
++  Darwin*) darwin=true
++    # Use /usr/libexec/java_home if available, otherwise fall back to /Library/Java/Home
++    # See https://developer.apple.com/library/mac/qa/qa1170/_index.html
++    if [ -z "$JAVA_HOME" ]; then
++      if [ -x "/usr/libexec/java_home" ]; then
++        JAVA_HOME="$(/usr/libexec/java_home)"; export JAVA_HOME
++      else
++        JAVA_HOME="/Library/Java/Home"; export JAVA_HOME
++      fi
++    fi
++    ;;
++esac
++
++if [ -z "$JAVA_HOME" ] ; then
++  if [ -r /etc/gentoo-release ] ; then
++    JAVA_HOME=$(java-config --jre-home)
++  fi
++fi
++
++# For Cygwin, ensure paths are in UNIX format before anything is touched
++if $cygwin ; then
++  [ -n "$JAVA_HOME" ] &&
++    JAVA_HOME=$(cygpath --unix "$JAVA_HOME")
++  [ -n "$CLASSPATH" ] &&
++    CLASSPATH=$(cygpath --path --unix "$CLASSPATH")
++fi
++
++# For Mingw, ensure paths are in UNIX format before anything is touched
++if $mingw ; then
++  [ -n "$JAVA_HOME" ] && [ -d "$JAVA_HOME" ] &&
++    JAVA_HOME="$(cd "$JAVA_HOME" || (echo "cannot cd into $JAVA_HOME."; exit 1); pwd)"
++fi
++
++if [ -z "$JAVA_HOME" ]; then
++  javaExecutable="$(which javac)"
++  if [ -n "$javaExecutable" ] && ! [ "$(expr "\"$javaExecutable\"" : '\([^ ]*\)')" = "no" ]; then
++    # readlink(1) is not available as standard on Solaris 10.
++    readLink=$(which readlink)
++    if [ ! "$(expr "$readLink" : '\([^ ]*\)')" = "no" ]; then
++      if $darwin ; then
++        javaHome="$(dirname "\"$javaExecutable\"")"
++        javaExecutable="$(cd "\"$javaHome\"" && pwd -P)/javac"
++      else
++        javaExecutable="$(readlink -f "\"$javaExecutable\"")"
++      fi
++      javaHome="$(dirname "\"$javaExecutable\"")"
++      javaHome=$(expr "$javaHome" : '\(.*\)/bin')
++      JAVA_HOME="$javaHome"
++      export JAVA_HOME
++    fi
++  fi
++fi
++
++if [ -z "$JAVACMD" ] ; then
++  if [ -n "$JAVA_HOME"  ] ; then
++    if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
++      # IBM's JDK on AIX uses strange locations for the executables
++      JAVACMD="$JAVA_HOME/jre/sh/java"
++    else
++      JAVACMD="$JAVA_HOME/bin/java"
++    fi
++  else
++    JAVACMD="$(\unset -f command 2>/dev/null; \command -v java)"
++  fi
++fi
++
++if [ ! -x "$JAVACMD" ] ; then
++  echo "Error: JAVA_HOME is not defined correctly." >&2
++  echo "  We cannot execute $JAVACMD" >&2
++  exit 1
++fi
++
++if [ -z "$JAVA_HOME" ] ; then
++  echo "Warning: JAVA_HOME environment variable is not set."
++fi
++
++# traverses directory structure from process work directory to filesystem root
++# first directory with .mvn subdirectory is considered project base directory
++find_maven_basedir() {
++  if [ -z "$1" ]
++  then
++    echo "Path not specified to find_maven_basedir"
++    return 1
++  fi
++
++  basedir="$1"
++  wdir="$1"
++  while [ "$wdir" != '/' ] ; do
++    if [ -d "$wdir"/.mvn ] ; then
++      basedir=$wdir
++      break
++    fi
++    # workaround for JBEAP-8937 (on Solaris 10/Sparc)
++    if [ -d "${wdir}" ]; then
++      wdir=$(cd "$wdir/.." || exit 1; pwd)
++    fi
++    # end of workaround
++  done
++  printf '%s' "$(cd "$basedir" || exit 1; pwd)"
++}
++
++# concatenates all lines of a file
++concat_lines() {
++  if [ -f "$1" ]; then
++    # Remove \r in case we run on Windows within Git Bash
++    # and check out the repository with auto CRLF management
++    # enabled. Otherwise, we may read lines that are delimited with
++    # \r\n and produce $'-Xarg\r' rather than -Xarg due to word
++    # splitting rules.
++    tr -s '\r\n' ' ' < "$1"
++  fi
++}
++
++log() {
++  if [ "$MVNW_VERBOSE" = true ]; then
++    printf '%s\n' "$1"
++  fi
++}
++
++BASE_DIR=$(find_maven_basedir "$(dirname "$0")")
++if [ -z "$BASE_DIR" ]; then
++  exit 1;
++fi
++
++MAVEN_PROJECTBASEDIR=${MAVEN_BASEDIR:-"$BASE_DIR"}; export MAVEN_PROJECTBASEDIR
++log "$MAVEN_PROJECTBASEDIR"
++
++##########################################################################################
++# Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
++# This allows using the maven wrapper in projects that prohibit checking in binary data.
++##########################################################################################
++wrapperJarPath="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar"
++if [ -r "$wrapperJarPath" ]; then
++    log "Found $wrapperJarPath"
++else
++    log "Couldn't find $wrapperJarPath, downloading it ..."
++
++    if [ -n "$MVNW_REPOURL" ]; then
++      wrapperUrl="$MVNW_REPOURL/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
++    else
++      wrapperUrl="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
++    fi
++    while IFS="=" read -r key value; do
++      # Remove '\r' from value to allow usage on windows as IFS does not consider '\r' as a separator ( considers space, tab, new line ('\n'), and custom '=' )
++      safeValue=$(echo "$value" | tr -d '\r')
++      case "$key" in (wrapperUrl) wrapperUrl="$safeValue"; break ;;
++      esac
++    done < "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
++    log "Downloading from: $wrapperUrl"
++
++    if $cygwin; then
++      wrapperJarPath=$(cygpath --path --windows "$wrapperJarPath")
++    fi
++
++    if command -v wget > /dev/null; then
++        log "Found wget ... using wget"
++        [ "$MVNW_VERBOSE" = true ] && QUIET="" || QUIET="--quiet"
++        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
++            wget $QUIET "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
++        else
++            wget $QUIET --http-user="$MVNW_USERNAME" --http-password="$MVNW_PASSWORD" "$wrapperUrl" -O "$wrapperJarPath" || rm -f "$wrapperJarPath"
++        fi
++    elif command -v curl > /dev/null; then
++        log "Found curl ... using curl"
++        [ "$MVNW_VERBOSE" = true ] && QUIET="" || QUIET="--silent"
++        if [ -z "$MVNW_USERNAME" ] || [ -z "$MVNW_PASSWORD" ]; then
++            curl $QUIET -o "$wrapperJarPath" "$wrapperUrl" -f -L || rm -f "$wrapperJarPath"
++        else
++            curl $QUIET --user "$MVNW_USERNAME:$MVNW_PASSWORD" -o "$wrapperJarPath" "$wrapperUrl" -f -L || rm -f "$wrapperJarPath"
++        fi
++    else
++        log "Falling back to using Java to download"
++        javaSource="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/MavenWrapperDownloader.java"
++        javaClass="$MAVEN_PROJECTBASEDIR/.mvn/wrapper/MavenWrapperDownloader.class"
++        # For Cygwin, switch paths to Windows format before running javac
++        if $cygwin; then
++          javaSource=$(cygpath --path --windows "$javaSource")
++          javaClass=$(cygpath --path --windows "$javaClass")
++        fi
++        if [ -e "$javaSource" ]; then
++            if [ ! -e "$javaClass" ]; then
++                log " - Compiling MavenWrapperDownloader.java ..."
++                ("$JAVA_HOME/bin/javac" "$javaSource")
++            fi
++            if [ -e "$javaClass" ]; then
++                log " - Running MavenWrapperDownloader.java ..."
++                ("$JAVA_HOME/bin/java" -cp .mvn/wrapper MavenWrapperDownloader "$wrapperUrl" "$wrapperJarPath") || rm -f "$wrapperJarPath"
++            fi
++        fi
++    fi
++fi
++##########################################################################################
++# End of extension
++##########################################################################################
++
++# If specified, validate the SHA-256 sum of the Maven wrapper jar file
++wrapperSha256Sum=""
++while IFS="=" read -r key value; do
++  case "$key" in (wrapperSha256Sum) wrapperSha256Sum=$value; break ;;
++  esac
++done < "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.properties"
++if [ -n "$wrapperSha256Sum" ]; then
++  wrapperSha256Result=false
++  if command -v sha256sum > /dev/null; then
++    if echo "$wrapperSha256Sum  $wrapperJarPath" | sha256sum -c > /dev/null 2>&1; then
++      wrapperSha256Result=true
++    fi
++  elif command -v shasum > /dev/null; then
++    if echo "$wrapperSha256Sum  $wrapperJarPath" | shasum -a 256 -c > /dev/null 2>&1; then
++      wrapperSha256Result=true
++    fi
++  else
++    echo "Checksum validation was requested but neither 'sha256sum' or 'shasum' are available."
++    echo "Please install either command, or disable validation by removing 'wrapperSha256Sum' from your maven-wrapper.properties."
++    exit 1
++  fi
++  if [ $wrapperSha256Result = false ]; then
++    echo "Error: Failed to validate Maven wrapper SHA-256, your Maven wrapper might be compromised." >&2
++    echo "Investigate or delete $wrapperJarPath to attempt a clean download." >&2
++    echo "If you updated your Maven version, you need to update the specified wrapperSha256Sum property." >&2
++    exit 1
++  fi
++fi
++
++MAVEN_OPTS="$(concat_lines "$MAVEN_PROJECTBASEDIR/.mvn/jvm.config") $MAVEN_OPTS"
++
++# For Cygwin, switch paths to Windows format before running java
++if $cygwin; then
++  [ -n "$JAVA_HOME" ] &&
++    JAVA_HOME=$(cygpath --path --windows "$JAVA_HOME")
++  [ -n "$CLASSPATH" ] &&
++    CLASSPATH=$(cygpath --path --windows "$CLASSPATH")
++  [ -n "$MAVEN_PROJECTBASEDIR" ] &&
++    MAVEN_PROJECTBASEDIR=$(cygpath --path --windows "$MAVEN_PROJECTBASEDIR")
++fi
++
++# Provide a "standardized" way to retrieve the CLI args that will
++# work with both Windows and non-Windows executions.
++MAVEN_CMD_LINE_ARGS="$MAVEN_CONFIG $*"
++export MAVEN_CMD_LINE_ARGS
++
++WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
++
++# shellcheck disable=SC2086 # safe args
++exec "$JAVACMD" \
++  $MAVEN_OPTS \
++  $MAVEN_DEBUG_OPTS \
++  -classpath "$MAVEN_PROJECTBASEDIR/.mvn/wrapper/maven-wrapper.jar" \
++  "-Dmaven.multiModuleProjectDirectory=${MAVEN_PROJECTBASEDIR}" \
++  ${WRAPPER_LAUNCHER} $MAVEN_CONFIG "$@"
+Index: flight-search/mvnw.cmd
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/mvnw.cmd b/flight-search/mvnw.cmd
+new file mode 100644
+--- /dev/null	(date 1694211103001)
++++ b/flight-search/mvnw.cmd	(date 1694211103001)
+@@ -0,0 +1,205 @@
++@REM ----------------------------------------------------------------------------
++@REM Licensed to the Apache Software Foundation (ASF) under one
++@REM or more contributor license agreements.  See the NOTICE file
++@REM distributed with this work for additional information
++@REM regarding copyright ownership.  The ASF licenses this file
++@REM to you under the Apache License, Version 2.0 (the
++@REM "License"); you may not use this file except in compliance
++@REM with the License.  You may obtain a copy of the License at
++@REM
++@REM    https://www.apache.org/licenses/LICENSE-2.0
++@REM
++@REM Unless required by applicable law or agreed to in writing,
++@REM software distributed under the License is distributed on an
++@REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
++@REM KIND, either express or implied.  See the License for the
++@REM specific language governing permissions and limitations
++@REM under the License.
++@REM ----------------------------------------------------------------------------
++
++@REM ----------------------------------------------------------------------------
++@REM Apache Maven Wrapper startup batch script, version 3.2.0
++@REM
++@REM Required ENV vars:
++@REM JAVA_HOME - location of a JDK home dir
++@REM
++@REM Optional ENV vars
++@REM MAVEN_BATCH_ECHO - set to 'on' to enable the echoing of the batch commands
++@REM MAVEN_BATCH_PAUSE - set to 'on' to wait for a keystroke before ending
++@REM MAVEN_OPTS - parameters passed to the Java VM when running Maven
++@REM     e.g. to debug Maven itself, use
++@REM set MAVEN_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000
++@REM MAVEN_SKIP_RC - flag to disable loading of mavenrc files
++@REM ----------------------------------------------------------------------------
++
++@REM Begin all REM lines with '@' in case MAVEN_BATCH_ECHO is 'on'
++@echo off
++@REM set title of command window
++title %0
++@REM enable echoing by setting MAVEN_BATCH_ECHO to 'on'
++@if "%MAVEN_BATCH_ECHO%" == "on"  echo %MAVEN_BATCH_ECHO%
++
++@REM set %HOME% to equivalent of $HOME
++if "%HOME%" == "" (set "HOME=%HOMEDRIVE%%HOMEPATH%")
++
++@REM Execute a user defined script before this one
++if not "%MAVEN_SKIP_RC%" == "" goto skipRcPre
++@REM check for pre script, once with legacy .bat ending and once with .cmd ending
++if exist "%USERPROFILE%\mavenrc_pre.bat" call "%USERPROFILE%\mavenrc_pre.bat" %*
++if exist "%USERPROFILE%\mavenrc_pre.cmd" call "%USERPROFILE%\mavenrc_pre.cmd" %*
++:skipRcPre
++
++@setlocal
++
++set ERROR_CODE=0
++
++@REM To isolate internal variables from possible post scripts, we use another setlocal
++@setlocal
++
++@REM ==== START VALIDATION ====
++if not "%JAVA_HOME%" == "" goto OkJHome
++
++echo.
++echo Error: JAVA_HOME not found in your environment. >&2
++echo Please set the JAVA_HOME variable in your environment to match the >&2
++echo location of your Java installation. >&2
++echo.
++goto error
++
++:OkJHome
++if exist "%JAVA_HOME%\bin\java.exe" goto init
++
++echo.
++echo Error: JAVA_HOME is set to an invalid directory. >&2
++echo JAVA_HOME = "%JAVA_HOME%" >&2
++echo Please set the JAVA_HOME variable in your environment to match the >&2
++echo location of your Java installation. >&2
++echo.
++goto error
++
++@REM ==== END VALIDATION ====
++
++:init
++
++@REM Find the project base dir, i.e. the directory that contains the folder ".mvn".
++@REM Fallback to current working directory if not found.
++
++set MAVEN_PROJECTBASEDIR=%MAVEN_BASEDIR%
++IF NOT "%MAVEN_PROJECTBASEDIR%"=="" goto endDetectBaseDir
++
++set EXEC_DIR=%CD%
++set WDIR=%EXEC_DIR%
++:findBaseDir
++IF EXIST "%WDIR%"\.mvn goto baseDirFound
++cd ..
++IF "%WDIR%"=="%CD%" goto baseDirNotFound
++set WDIR=%CD%
++goto findBaseDir
++
++:baseDirFound
++set MAVEN_PROJECTBASEDIR=%WDIR%
++cd "%EXEC_DIR%"
++goto endDetectBaseDir
++
++:baseDirNotFound
++set MAVEN_PROJECTBASEDIR=%EXEC_DIR%
++cd "%EXEC_DIR%"
++
++:endDetectBaseDir
++
++IF NOT EXIST "%MAVEN_PROJECTBASEDIR%\.mvn\jvm.config" goto endReadAdditionalConfig
++
++@setlocal EnableExtensions EnableDelayedExpansion
++for /F "usebackq delims=" %%a in ("%MAVEN_PROJECTBASEDIR%\.mvn\jvm.config") do set JVM_CONFIG_MAVEN_PROPS=!JVM_CONFIG_MAVEN_PROPS! %%a
++@endlocal & set JVM_CONFIG_MAVEN_PROPS=%JVM_CONFIG_MAVEN_PROPS%
++
++:endReadAdditionalConfig
++
++SET MAVEN_JAVA_EXE="%JAVA_HOME%\bin\java.exe"
++set WRAPPER_JAR="%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.jar"
++set WRAPPER_LAUNCHER=org.apache.maven.wrapper.MavenWrapperMain
++
++set WRAPPER_URL="https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
++
++FOR /F "usebackq tokens=1,2 delims==" %%A IN ("%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.properties") DO (
++    IF "%%A"=="wrapperUrl" SET WRAPPER_URL=%%B
++)
++
++@REM Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
++@REM This allows using the maven wrapper in projects that prohibit checking in binary data.
++if exist %WRAPPER_JAR% (
++    if "%MVNW_VERBOSE%" == "true" (
++        echo Found %WRAPPER_JAR%
++    )
++) else (
++    if not "%MVNW_REPOURL%" == "" (
++        SET WRAPPER_URL="%MVNW_REPOURL%/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
++    )
++    if "%MVNW_VERBOSE%" == "true" (
++        echo Couldn't find %WRAPPER_JAR%, downloading it ...
++        echo Downloading from: %WRAPPER_URL%
++    )
++
++    powershell -Command "&{"^
++		"$webclient = new-object System.Net.WebClient;"^
++		"if (-not ([string]::IsNullOrEmpty('%MVNW_USERNAME%') -and [string]::IsNullOrEmpty('%MVNW_PASSWORD%'))) {"^
++		"$webclient.Credentials = new-object System.Net.NetworkCredential('%MVNW_USERNAME%', '%MVNW_PASSWORD%');"^
++		"}"^
++		"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $webclient.DownloadFile('%WRAPPER_URL%', '%WRAPPER_JAR%')"^
++		"}"
++    if "%MVNW_VERBOSE%" == "true" (
++        echo Finished downloading %WRAPPER_JAR%
++    )
++)
++@REM End of extension
++
++@REM If specified, validate the SHA-256 sum of the Maven wrapper jar file
++SET WRAPPER_SHA_256_SUM=""
++FOR /F "usebackq tokens=1,2 delims==" %%A IN ("%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.properties") DO (
++    IF "%%A"=="wrapperSha256Sum" SET WRAPPER_SHA_256_SUM=%%B
++)
++IF NOT %WRAPPER_SHA_256_SUM%=="" (
++    powershell -Command "&{"^
++       "$hash = (Get-FileHash \"%WRAPPER_JAR%\" -Algorithm SHA256).Hash.ToLower();"^
++       "If('%WRAPPER_SHA_256_SUM%' -ne $hash){"^
++       "  Write-Output 'Error: Failed to validate Maven wrapper SHA-256, your Maven wrapper might be compromised.';"^
++       "  Write-Output 'Investigate or delete %WRAPPER_JAR% to attempt a clean download.';"^
++       "  Write-Output 'If you updated your Maven version, you need to update the specified wrapperSha256Sum property.';"^
++       "  exit 1;"^
++       "}"^
++       "}"
++    if ERRORLEVEL 1 goto error
++)
++
++@REM Provide a "standardized" way to retrieve the CLI args that will
++@REM work with both Windows and non-Windows executions.
++set MAVEN_CMD_LINE_ARGS=%*
++
++%MAVEN_JAVA_EXE% ^
++  %JVM_CONFIG_MAVEN_PROPS% ^
++  %MAVEN_OPTS% ^
++  %MAVEN_DEBUG_OPTS% ^
++  -classpath %WRAPPER_JAR% ^
++  "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR%" ^
++  %WRAPPER_LAUNCHER% %MAVEN_CONFIG% %*
++if ERRORLEVEL 1 goto error
++goto end
++
++:error
++set ERROR_CODE=1
++
++:end
++@endlocal & set ERROR_CODE=%ERROR_CODE%
++
++if not "%MAVEN_SKIP_RC%"=="" goto skipRcPost
++@REM check for post script, once with legacy .bat ending and once with .cmd ending
++if exist "%USERPROFILE%\mavenrc_post.bat" call "%USERPROFILE%\mavenrc_post.bat"
++if exist "%USERPROFILE%\mavenrc_post.cmd" call "%USERPROFILE%\mavenrc_post.cmd"
++:skipRcPost
++
++@REM pause the script if MAVEN_BATCH_PAUSE is set to 'on'
++if "%MAVEN_BATCH_PAUSE%"=="on" pause
++
++if "%MAVEN_TERMINATE_CMD%"=="on" exit %ERROR_CODE%
++
++cmd /C exit /B %ERROR_CODE%
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/AuthResponseDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/AuthResponseDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/AuthResponseDto.java
+new file mode 100644
+--- /dev/null	(date 1694445456766)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/AuthResponseDto.java	(date 1694445456766)
+@@ -0,0 +1,13 @@
++package com.amadeus.flightsearch.dto;
++
++import lombok.Data;
++
++@Data
++public class AuthResponseDto {
++    private String accessToken;
++    private String tokenType = "Bearer ";
++
++    public AuthResponseDto(String accessToken) {
++        this.accessToken = accessToken;
++    }
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/LoginDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/LoginDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/LoginDto.java
+new file mode 100644
+--- /dev/null	(date 1694445507360)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/LoginDto.java	(date 1694445507360)
+@@ -0,0 +1,10 @@
++package com.amadeus.flightsearch.dto;
++
++import lombok.Data;
++
++@Data
++public class LoginDto {
++    private String username;
++
++    private String password;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/dto/RegisterDto.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/dto/RegisterDto.java b/flight-search/src/main/java/com/amadeus/flightsearch/dto/RegisterDto.java
+new file mode 100644
+--- /dev/null	(date 1694445548420)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/dto/RegisterDto.java	(date 1694445548420)
+@@ -0,0 +1,10 @@
++package com.amadeus.flightsearch.dto;
++
++import lombok.Data;
++
++@Data
++public class RegisterDto {
++    private String username;
++
++    private String password;
++}
+Index: flight-search/src/main/resources/application.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/flight-search/src/main/resources/application.properties b/flight-search/src/main/resources/application.properties
+new file mode 100644
+--- /dev/null	(date 1694213092507)
++++ b/flight-search/src/main/resources/application.properties	(date 1694213092507)
+@@ -0,0 +1,8 @@
++spring.jpa.generate-ddl=true
++spring.jpa.hibernate.ddl-auto=update
++spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
++spring.jpa.show-sql=true
++spring.datasource.url=jdbc:postgresql://localhost:5432/flight-db
++spring.datasource.username=postgres
++spring.datasource.password=9014
++spring.datasource.driver-class-name=org.postgresql.Driver
+Index: flight-search/src/main/java/com/amadeus/flightsearch/FlightSearchApplication.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/FlightSearchApplication.java b/flight-search/src/main/java/com/amadeus/flightsearch/FlightSearchApplication.java
+new file mode 100644
+--- /dev/null	(date 1694212742047)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/FlightSearchApplication.java	(date 1694212742047)
+@@ -0,0 +1,19 @@
++package com.amadeus.flightsearch;
++
++import org.modelmapper.ModelMapper;
++import org.springframework.boot.SpringApplication;
++import org.springframework.boot.autoconfigure.SpringBootApplication;
++import org.springframework.context.annotation.Bean;
++
++@SpringBootApplication
++public class FlightSearchApplication {
++
++	public static void main(String[] args) {
++		SpringApplication.run(FlightSearchApplication.class, args);
++	}
++
++	@Bean
++	public ModelMapper modelMapper(){
++		return new ModelMapper();
++	}
++}
+Index: flight-search/src/test/java/com/amadeus/flightsearch/FlightSearchApplicationTests.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/test/java/com/amadeus/flightsearch/FlightSearchApplicationTests.java b/flight-search/src/test/java/com/amadeus/flightsearch/FlightSearchApplicationTests.java
+new file mode 100644
+--- /dev/null	(date 1694211103155)
++++ b/flight-search/src/test/java/com/amadeus/flightsearch/FlightSearchApplicationTests.java	(date 1694211103155)
+@@ -0,0 +1,13 @@
++package com.amadeus.flightsearch;
++
++import org.junit.jupiter.api.Test;
++import org.springframework.boot.test.context.SpringBootTest;
++
++@SpringBootTest
++class FlightSearchApplicationTests {
++
++	@Test
++	void contextLoads() {
++	}
++
++}
+Index: flight-search/.mvn/wrapper/maven-wrapper.properties
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>ISO-8859-1
+===================================================================
+diff --git a/flight-search/.mvn/wrapper/maven-wrapper.properties b/flight-search/.mvn/wrapper/maven-wrapper.properties
+new file mode 100644
+--- /dev/null	(date 1694211103118)
++++ b/flight-search/.mvn/wrapper/maven-wrapper.properties	(date 1694211103118)
+@@ -0,0 +1,2 @@
++distributionUrl=https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/3.9.4/apache-maven-3.9.4-bin.zip
++wrapperUrl=https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar
+Index: .idea/compiler.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/compiler.xml b/.idea/compiler.xml
+new file mode 100644
+--- /dev/null	(date 1694269813152)
++++ b/.idea/compiler.xml	(date 1694269813152)
+@@ -0,0 +1,19 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="CompilerConfiguration">
++    <annotationProcessing>
++      <profile default="true" name="Default" enabled="true" />
++      <profile name="Maven default annotation processors profile" enabled="true">
++        <sourceOutputDir name="target/generated-sources/annotations" />
++        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
++        <outputRelativeToContentRoot value="true" />
++        <module name="flight-search" />
++      </profile>
++    </annotationProcessing>
++  </component>
++  <component name="JavacSettings">
++    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
++      <module name="flight-search" options="-parameters" />
++    </option>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/encodings.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/encodings.xml b/.idea/encodings.xml
+new file mode 100644
+--- /dev/null	(date 1694211181710)
++++ b/.idea/encodings.xml	(date 1694211181710)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="Encoding">
++    <file url="file://$PROJECT_DIR$/flight-search/src/main/java" charset="UTF-8" />
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/jarRepositories.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/jarRepositories.xml b/.idea/jarRepositories.xml
+new file mode 100644
+--- /dev/null	(date 1694211181720)
++++ b/.idea/jarRepositories.xml	(date 1694211181720)
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="RemoteRepositoriesConfiguration">
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Central Repository" />
++      <option name="url" value="https://repo.maven.apache.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="central" />
++      <option name="name" value="Maven Central repository" />
++      <option name="url" value="https://repo1.maven.org/maven2" />
++    </remote-repository>
++    <remote-repository>
++      <option name="id" value="jboss.community" />
++      <option name="name" value="JBoss Community repository" />
++      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
++    </remote-repository>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/.gitignore
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/.gitignore b/.idea/.gitignore
+new file mode 100644
+--- /dev/null	(date 1694211149185)
++++ b/.idea/.gitignore	(date 1694211149185)
+@@ -0,0 +1,3 @@
++# Default ignored files
++/shelf/
++/workspace.xml
+Index: .idea/flight-search.iml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/flight-search.iml b/.idea/flight-search.iml
+new file mode 100644
+--- /dev/null	(date 1694211181663)
++++ b/.idea/flight-search.iml	(date 1694211181663)
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<module version="4">
++  <component name="AdditionalModuleElements">
++    <content url="file://$MODULE_DIR$" />
++  </component>
++</module>
+\ No newline at end of file
+Index: .idea/modules.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/modules.xml b/.idea/modules.xml
+new file mode 100644
+--- /dev/null	(date 1694211181673)
++++ b/.idea/modules.xml	(date 1694211181673)
+@@ -0,0 +1,8 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ProjectModuleManager">
++    <modules>
++      <module fileurl="file://$PROJECT_DIR$/.idea/flight-search.iml" filepath="$PROJECT_DIR$/.idea/flight-search.iml" />
++    </modules>
++  </component>
++</project>
+\ No newline at end of file
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+new file mode 100644
+--- /dev/null	(date 1694211181694)
++++ b/.idea/misc.xml	(date 1694211181694)
+@@ -0,0 +1,14 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<project version="4">
++  <component name="ExternalStorageConfigurationManager" enabled="true" />
++  <component name="MavenProjectsManager">
++    <option name="originalFiles">
++      <list>
++        <option value="$PROJECT_DIR$/flight-search/pom.xml" />
++      </list>
++    </option>
++  </component>
++  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="corretto-17" project-jdk-type="JavaSDK">
++    <output url="file://$PROJECT_DIR$/out" />
++  </component>
++</project>
+\ No newline at end of file
+Index: flight-search/src/main/java/com/amadeus/flightsearch/model/Flight.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/model/Flight.java b/flight-search/src/main/java/com/amadeus/flightsearch/model/Flight.java
+new file mode 100644
+--- /dev/null	(date 1694445991651)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/model/Flight.java	(date 1694445991651)
+@@ -0,0 +1,36 @@
++package com.amadeus.flightsearch.model;
++
++import com.fasterxml.jackson.annotation.JsonFormat;
++
++import lombok.AllArgsConstructor;
++import lombok.Getter;
++import lombok.NoArgsConstructor;
++import lombok.Setter;
++
++import javax.persistence.*;
++import java.time.LocalDateTime;
++import java.util.Date;
++
++@Entity
++@Table
++@Getter
++@Setter
++@NoArgsConstructor
++@AllArgsConstructor
++public class Flight {
++
++    @Id
++    @GeneratedValue(strategy = GenerationType.IDENTITY)
++    private Long id;
++
++    private String departureAirport;
++
++    private String arrivalAirport;
++
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime departureTime;
++    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
++    private LocalDateTime arrivalTime;
++
++    private long price;
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/repository/FlightRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/repository/FlightRepository.java b/flight-search/src/main/java/com/amadeus/flightsearch/repository/FlightRepository.java
+new file mode 100644
+--- /dev/null	(date 1694381869893)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/repository/FlightRepository.java	(date 1694381869893)
+@@ -0,0 +1,25 @@
++package com.amadeus.flightsearch.repository;
++
++import com.amadeus.flightsearch.model.Flight;
++import org.springframework.data.jpa.repository.JpaRepository;
++import org.springframework.data.jpa.repository.Query;
++
++import java.time.LocalDate;
++import java.time.LocalDateTime;
++import java.util.List;
++
++public interface FlightRepository extends JpaRepository<Flight, Long> {
++
++    @Query(value = "SELECT * FROM flight f WHERE ?1= f.departure_airport AND ?2= f.arrival_airport AND" +
++            " ?3= DATE(f.departure_time) AND ?4= DATE(f.arrival_time)",nativeQuery = true)
++    List<Flight> findFlights(String from, String to, LocalDate departure, LocalDate
++            arrival);
++
++    @Query(value = "SELECT * FROM flight f WHERE ?1= f.departure_airport AND ?2= f.arrival_airport AND" +
++            " ?3= DATE(f.departure_time)",nativeQuery = true)
++    List<Flight> findFlightsOnlyDeparture(String from, String to, LocalDate departure);
++
++    @Query(value = "SELECT * FROM flight f WHERE ?1= f.departure_airport AND ?2= f.arrival_airport AND" +
++            " ?3= DATE(f.arrival_time)",nativeQuery = true)
++    List<Flight> findFlightsOnlyArrival(String from, String to, LocalDate arrival);
++}
+Index: flight-search/src/main/java/com/amadeus/flightsearch/controller/FlightController.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/flight-search/src/main/java/com/amadeus/flightsearch/controller/FlightController.java b/flight-search/src/main/java/com/amadeus/flightsearch/controller/FlightController.java
+new file mode 100644
+--- /dev/null	(date 1694451439404)
++++ b/flight-search/src/main/java/com/amadeus/flightsearch/controller/FlightController.java	(date 1694451439404)
+@@ -0,0 +1,48 @@
++package com.amadeus.flightsearch.controller;
++
++import com.amadeus.flightsearch.dto.FlightDto;
++import com.amadeus.flightsearch.dto.UpdateFlightDto;
++import com.amadeus.flightsearch.service.FlightService;
++import lombok.RequiredArgsConstructor;
++import org.springframework.http.HttpStatus;
++import org.springframework.http.ResponseEntity;
++import org.springframework.security.access.annotation.Secured;
++import org.springframework.security.access.prepost.PreAuthorize;
++import org.springframework.web.bind.annotation.*;
++
++import java.util.List;
++
++@RestController
++@RequestMapping("/api/flight")
++@RequiredArgsConstructor
++public class FlightController {
++
++    private final FlightService flightService;
++
++    @PostMapping
++    //@PreAuthorize("hasRole('ADMIN')")
++    public ResponseEntity<String> createFlight(@RequestBody FlightDto flightDto){
++        flightService.createFlight(flightDto);
++        return new ResponseEntity<>("Flight created successfully", HttpStatus.CREATED);
++    }
++    @GetMapping
++    public ResponseEntity<List<FlightDto>> getAllFlight(){
++        return new ResponseEntity<>(flightService.getAllFlight(),HttpStatus.OK);
++    }
++    @GetMapping("/{id}")
++    public ResponseEntity<FlightDto> getFlightById(@PathVariable Long id){
++        return new ResponseEntity<>(flightService.getFlightById(id), HttpStatus.OK);
++    }
++    @PutMapping("/{id}")
++    @Secured("ADMIN")
++    public ResponseEntity<String> updateFlightById(@PathVariable Long id, @RequestBody UpdateFlightDto updateFlightDto){
++        flightService.updateFlightById(id,updateFlightDto);
++        return new ResponseEntity<>("Flight updated successfully", HttpStatus.OK);
++    }
++    @DeleteMapping("/{id}")
++    @Secured("ADMIN")
++    public ResponseEntity<String> deleteFlightById(@PathVariable Long id){
++        flightService.deleteFlightById(id);
++        return new ResponseEntity<>("Flight deleted successfully", HttpStatus.OK);
++    }
++}
