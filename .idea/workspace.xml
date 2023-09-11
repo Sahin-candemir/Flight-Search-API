@@ -4,7 +4,57 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b02aec47-296f-4de5-a233-78f32cfbe815" name="Changes" comment="Flights Search API first commit" />
+    <list default="true" id="b02aec47-296f-4de5-a233-78f32cfbe815" name="Changes" comment="Flights Search API first commit">
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/flight-search.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/.mvn/wrapper/maven-wrapper.jar" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/.mvn/wrapper/maven-wrapper.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/mvnw" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/mvnw.cmd" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/FlightSearchApplication.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/controller/AirportController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/controller/FlightController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/controller/SearchController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/AirportDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/AuthResponseDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/FlightDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/LoginDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/RegisterDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/SearchFlightResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/dto/UpdateFlightDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/exception/ResourceNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/model/Airport.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/model/Flight.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/model/Role.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/model/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/repository/AirportRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/repository/FlightRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/repository/RoleRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/repository/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/CustomUserDetailsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/JWTGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/JwtAuthEntryPoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/security/SecurityConstants.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/service/AirportService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/service/FlightService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/java/com/amadeus/flightsearch/service/SearchService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/main/resources/application.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/flight-search/src/test/java/com/amadeus/flightsearch/FlightSearchApplicationTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -19,6 +69,12 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -37,8 +93,9 @@
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "master",
-    "last_opened_file_path": "C:/amadeus/flight-search",
+    "last_opened_file_path": "C:/amadeus/flight-search/flight-search",
     "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
 }]]></component>
@@ -78,6 +135,15 @@
       <option name="presentableId" value="Default" />
       <updated>1694211144122</updated>
     </task>
+    <task id="LOCAL-00001" summary="Flights Search API first commit">
+      <option name="closed" value="true" />
+      <created>1694452854384</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1694452854384</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
