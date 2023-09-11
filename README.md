@@ -39,7 +39,7 @@ GET      |/api/airport| Tüm Havaalanı bilgilerini alır|
 GET      |/api/airport/{id} | id bilgisine sahip havaalanının bilgilerini alır|integer(id)
 ### Search Controller
 *``http://localhost:8080/api/search?from=ankara&to=istanbul&departure=2023-10-01&arrival=2023-10-03``
-*@RequestParam ile path içerisindeki arama yapılacak uçuş bilgileri için gerekli parameteri alır
+* @RequestParam ile path içerisindeki arama yapılacak uçuş bilgileri için gerekli parametreler alınır
 
 Method   |   Path   |   Description|Request Parameters
 ---------|----------|--------------|----------
